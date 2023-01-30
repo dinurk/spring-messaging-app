@@ -1,4 +1,4 @@
-package exception;
+package com.example.messagingapp.exception;
 
 public class UserNotFoundException extends Exception {
 

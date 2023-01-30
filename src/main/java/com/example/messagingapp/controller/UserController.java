@@ -1,53 +1,56 @@
 package com.example.messagingapp.controller;
 
+import com.example.messagingapp.dto.RegisterUserDTO;
 import com.example.messagingapp.entity.UserEntity;
-import com.example.messagingapp.model.UserModel;
-import com.example.messagingapp.repository.UserRepository;
 import com.example.messagingapp.service.UserService;
-import exception.UserAlreadyExistsException;
-import exception.UserNotFoundException;
+import com.example.messagingapp.exception.UserAlreadyExistsException;
+import com.example.messagingapp.exception.UserNotFoundException;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 @RestController
 @RequestMapping("/users")
 public class UserController {
 
-     @Autowired
-     private UserService userService;
+    @Autowired
+    private UserService userService;
 
     @PostMapping
-    public ResponseEntity register(@RequestBody UserEntity user) {
+    public ResponseEntity register(@RequestBody @Valid RegisterUserDTO registerUserDTO) {
         try {
-            UserModel userModel = userService.register(user);
-            return ResponseEntity.ok(userModel);
+            UserEntity userEntity = userService.register(registerUserDTO);
+
+            return ResponseEntity.created(
+                    ServletUriComponentsBuilder
+                            .fromCurrentRequest()
+                            .path("/{id}")
+                            .buildAndExpand(userEntity.getId())
+                            .toUri())
+                    .body(registerUserDTO);
         }
         catch(UserAlreadyExistsException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
-        catch (Exception e) {
-            return ResponseEntity.badRequest().body("an error occurred during new user registration");
-        }
     }
 
-    @GetMapping
-    public ResponseEntity getById(@RequestParam(value = "id", defaultValue = "0") Long id) {
+    @GetMapping("/{id}")
+    public ResponseEntity findById(@PathVariable Long id) {
         try {
             return ResponseEntity.ok(userService.findById(id));
         }
         catch(UserNotFoundException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
-        catch (Exception e) {
-            return ResponseEntity.badRequest().body("error occurred");
-        }
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity deleteById(@PathVariable Long id) {
         try {
-            return ResponseEntity.ok(userService.deleteById(id));
+            userService.deleteById(id);
+            return ResponseEntity.status(204).body(null);
         }
         catch (Exception e) {
             return ResponseEntity.badRequest().body("error occurred");

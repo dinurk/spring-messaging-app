@@ -1,14 +1,15 @@
 package com.example.messagingapp.service;
 
+import com.example.messagingapp.dto.FindUserDTO;
+import com.example.messagingapp.dto.RegisterUserDTO;
 import com.example.messagingapp.entity.UserEntity;
-import com.example.messagingapp.model.UserModel;
 import com.example.messagingapp.repository.UserRepository;
-import exception.UserAlreadyExistsException;
-import exception.UserNotFoundException;
+import com.example.messagingapp.exception.UserAlreadyExistsException;
+import com.example.messagingapp.exception.UserNotFoundException;
+import org.modelmapper.ModelMapper;
+import org.modelmapper.TypeMap;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import java.util.Optional;
 
 @Service
 public class UserService {
@@ -16,25 +17,26 @@ public class UserService {
     @Autowired
     private UserRepository userRepository;
 
-    public UserModel register(UserEntity user) throws UserAlreadyExistsException {
+    public UserEntity register(RegisterUserDTO registerUserDTO) throws UserAlreadyExistsException {
 
-        if(userRepository.findByEmail(user.getEmail()) != null) {
-            throw new UserAlreadyExistsException(String.format("user with email: %S already exists", user.getEmail()));
+        if(userRepository.findByEmail(registerUserDTO.getEmail()) != null) {
+            throw new UserAlreadyExistsException(String.format("user with email: %S already exists", registerUserDTO.getEmail()));
         }
 
-        userRepository.save(user);
+        UserEntity userEntity = new ModelMapper().map(registerUserDTO, UserEntity.class);
+        userRepository.save(userEntity);
 
-        return UserModel.toUserModel(user);
+        return userEntity;
     }
 
-    public UserModel findById(Long id) throws UserNotFoundException {
+    public FindUserDTO findById(Long id) throws UserNotFoundException {
 
-        UserEntity user = userRepository.findById(id).orElse(null);
-        if(user == null) {
+        UserEntity userEntity = userRepository.findById(id).orElse(null);
+        if(userEntity == null) {
             throw new UserNotFoundException(String.format("user with id: %d not found", id));
         }
 
-        return UserModel.toUserModel(user);
+        return new ModelMapper().map(userEntity, FindUserDTO.class);
     }
 
     public Long deleteById(Long id) {

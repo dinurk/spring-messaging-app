@@ -2,10 +2,11 @@ package com.example.messagingapp.service;
 
 import com.example.messagingapp.entity.ChatEntity;
 import com.example.messagingapp.entity.UserEntity;
-import com.example.messagingapp.model.ChatModel;
+import com.example.messagingapp.dto.CreateChatDTO;
 import com.example.messagingapp.repository.ChatRepository;
 import com.example.messagingapp.repository.UserRepository;
-import exception.UserNotFoundException;
+import com.example.messagingapp.exception.UserNotFoundException;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -16,20 +17,20 @@ public class ChatService {
     private ChatRepository chatRepository;
     @Autowired
     private UserRepository userRepository;
-    public ChatModel create(ChatModel chatModel) throws UserNotFoundException {
 
-        UserEntity administrator = userRepository.findById(chatModel.getAdministratorId()).orElse(null);
+
+    public ChatEntity create(CreateChatDTO createChatDTO) throws UserNotFoundException {
+
+        UserEntity administrator = userRepository.findById(createChatDTO.getAdministratorId()).orElse(null);
 
         if(administrator == null) {
-            throw new UserNotFoundException(String.format("user with id %d not found, request will be ignored", chatModel.getAdministratorId()));
+            throw new UserNotFoundException(String.format("user with id %d not found, request will be ignored", createChatDTO.getAdministratorId()));
         }
 
-        ChatEntity chatEntity = new ChatEntity();
-        chatEntity.setId(chatModel.getId());
-        chatEntity.setTitle(chatModel.getTitle());
+        ChatEntity chatEntity = new ModelMapper().map(createChatDTO, ChatEntity.class);
         chatEntity.setAdministrator(administrator);
         chatRepository.save(chatEntity);
 
-        return chatModel;
+        return chatEntity;
     }
 }

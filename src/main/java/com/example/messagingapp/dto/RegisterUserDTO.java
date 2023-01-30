@@ -1,34 +1,25 @@
-package com.example.messagingapp.entity;
+package com.example.messagingapp.dto;
 
-import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
+import org.hibernate.validator.constraints.Length;
 
-import java.util.List;
+public class RegisterUserDTO {
 
-@Entity
-public class UserEntity {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
+    @NotNull
+    @Length(min = 5, max = 100)
+//    @Pattern(regexp = "^(?=.{1,64}@)[A-Za-z0-9_-]+(\\\\\\\\.[A-Za-z0-9_-]+)*@[^-][A-Za-z0-9-]+(\\\\\\\\.[A-Za-z0-9-]+)*(\\\\\\\\.[A-Za-z]{2,})$")
     private String email;
 
+    @NotNull
+    @Length(min = 5, max = 100)
     private String name;
 
+    @NotNull
+    @Length(min = 8, max = 100)
     private String password;
 
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "administrator")
-    private List<ChatEntity> chats;
-
-    public UserEntity() {
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
+    public RegisterUserDTO() {
     }
 
     public String getEmail() {
